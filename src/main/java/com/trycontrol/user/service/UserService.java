@@ -1,6 +1,7 @@
 package com.trycontrol.user.service;
 
 import com.trycontrol.user.dto.UserDTO;
+import com.trycontrol.user.dto.UserDetailsDTO;
 import com.trycontrol.user.infra.model.User;
 import com.trycontrol.user.infra.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,36 +18,53 @@ public class UserService {
     @Autowired
     public UserRepository userRepository;
 
-    public ResponseEntity<User> createUser(User userDetails) {
+    public ResponseEntity<UserDetailsDTO> createUser(User user) {
         try{
-            Optional<User> alredyExistsUser = userRepository.findByEmailAndPassword(userDetails.getEmail(), userDetails.getPassword());
+            Optional<User> alredyExistsUser = userRepository.findByEmailAndPassword(user.getEmail(), user.getPassword());
+
             if (alredyExistsUser.isPresent()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
             }
 
             User newUser = new User();
-            newUser.setName(userDetails.getName());
-            newUser.setEmail(userDetails.getEmail());
-            newUser.setPassword(userDetails.getPassword());
+            newUser.setName(user.getName());
+            newUser.setEmail(user.getEmail());
+            newUser.setPassword(user.getPassword());
             newUser.setCreatedAt(LocalDateTime.now());
             newUser.setUpdatedAt(null);
 
             userRepository.save(newUser);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+            UserDetailsDTO userDetailsDTO = new UserDetailsDTO(
+                    newUser.getName(),
+                    newUser.getEmail(),
+                    newUser.getCreatedAt(),
+                    newUser.getUpdatedAt()
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(userDetailsDTO);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public ResponseEntity<User> getUserByLogin(UserDTO userDetails) {
+    public ResponseEntity<UserDetailsDTO> getUserByLogin(UserDTO userDetails) {
         try{
             Optional<User> foundedUser = userRepository.findByEmailAndPassword(userDetails.email(), userDetails.password());
+
             if (foundedUser.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(foundedUser.get());
+            User user = foundedUser.get();
+            UserDetailsDTO userDetailsDTO = new UserDetailsDTO(
+                    user.getName(),
+                    user.getEmail(),
+                    user.getCreatedAt(),
+                    user.getUpdatedAt()
+            );
+
+            return ResponseEntity.status(HttpStatus.OK).body(userDetailsDTO);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -69,28 +87,42 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<User> updateUser(User userDetails){
-        try{
-            Optional<User> foundedUser = userRepository.findByEmailAndPassword(userDetails.getEmail(), userDetails.getPassword());
-            if(foundedUser.isEmpty()){
+    public ResponseEntity<UserDetailsDTO> updateUserDetails(UserDTO updateUserDTO) {
+        try {
+            Optional<User> foundedUser = userRepository.findByEmailAndPassword(updateUserDTO.email(), updateUserDTO.password());
+            if (foundedUser.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
             User user = foundedUser.get();
-            user.setName(userDetails.getName());
+
+            if (!user.getPassword().equals(updateUserDTO.password())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            }
+
+            user.setName(updateUserDTO.name());
             user.setUpdatedAt(LocalDateTime.now());
 
             userRepository.save(user);
 
-            return ResponseEntity.status(HttpStatus.OK).body(user);
-        }catch (Exception e){
-            throw new RuntimeException(e);
+            UserDetailsDTO userDetails = new UserDetailsDTO(
+                    user.getName(),
+                    user.getEmail(),
+                    user.getCreatedAt(),
+                    user.getUpdatedAt()
+            );
+
+            return ResponseEntity.ok(userDetails);
+        } catch (RuntimeException e) {
+            throw e;
         }
     }
+
 
     public ResponseEntity<List<User>> getAllUsers(){
         try{
             List<User> foundedUsers = userRepository.findAll();
+
             return ResponseEntity.status(HttpStatus.OK).body(foundedUsers);
         }catch (Exception e){
             throw new RuntimeException(e);

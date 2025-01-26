@@ -2,9 +2,10 @@ package com.trycontrol.user.dto;
 
 import java.time.LocalDateTime;
 
-public record UserDTO(
+public record UserDetailsDTO(
     String name,
     String email,
-    String password
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {
 }

@@ -1,6 +1,7 @@
 package com.trycontrol.user.controller;
 
 import com.trycontrol.user.dto.UserDTO;
+import com.trycontrol.user.dto.UserDetailsDTO;
 import com.trycontrol.user.infra.model.User;
 import com.trycontrol.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ public class UserController {
     public UserService userService;
 
     @GetMapping("/user")
-    public ResponseEntity<User> getUserByLogin(@RequestBody UserDTO userDetails) {
+    public ResponseEntity<UserDetailsDTO> getUserByLogin(@RequestBody UserDTO userDetails) {
         return userService.getUserByLogin(userDetails);
     }
 
@@ -26,13 +27,13 @@ public class UserController {
     }
 
     @PostMapping("/user")
-    public ResponseEntity<User> createUser(@RequestBody User userDetails) {
+    public ResponseEntity<UserDetailsDTO> createUser(@RequestBody User userDetails) {
         return userService.createUser(userDetails);
     }
 
     @PutMapping("/user")
-    public ResponseEntity<User> updateUser(@RequestBody User userDetails){
-        return userService.updateUser(userDetails);
+    public ResponseEntity<UserDetailsDTO> updateUser(@RequestBody UserDTO userDetails){
+        return userService.updateUserDetails(userDetails);
     }
 
     @DeleteMapping("/user")
