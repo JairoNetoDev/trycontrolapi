@@ -113,8 +113,8 @@ public class UserService {
             );
 
             return ResponseEntity.ok(userDetails);
-        } catch (RuntimeException e) {
-            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
